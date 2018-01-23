@@ -1,0 +1,210 @@
+<html>
+<style>
+canvas {
+	border: 1px solid blue;
+}
+#canvasWrapper {
+	float: left;
+	padding-right: 20px;
+}
+#configPanel input[type=number] {
+	width: 50px;
+}
+</style>
+<body>
+	<div id="wrapper">
+		<div id="canvasWrapper">
+			<canvas id='example'>Обновите браузер</canvas>
+		</div>
+		<div id="configPanel">
+			<fieldset>
+				<legend>Density, %</legend>
+				<input type="range" min="0" max="100" step="1" value="50" id="densityRange" onChange="config.set('density', this.value)">
+				<input type="number" min="0" max="100" step="1" value="50" id="densityInput" onChange="config.set('density', this.value)">
+			</fieldset>
+
+			<fieldset>
+				<legend>Humidity, %</legend>
+				<input type="range" min="0" max="100" step="1" value="50" id="humidityRange" onChange="config.set('humidity', this.value)">
+				<input type="number" min="0" max="100" step="1" value="50" id="humidityInput" onChange="config.set('humidity', this.value)">
+			</fieldset>
+
+			<fieldset>
+				<legend>Duration Burning, %</legend>
+				<input type="range" min="1" max="10" step="1" value="8" id="durationBurningRange" onChange="config.set('durationBurning', this.value)">
+				<input type="number" min="1" max="10" step="1" value="8" id="durationBurningInput" onChange="config.set('durationBurning', this.value)">
+			</fieldset>
+		</div>
+		<input type="button" value="Simulation">
+	</div>
+		<script>
+			
+
+// var a = ["a", "b", "c"];
+// var index;
+// for (index = 0; index < a.length; ++index) {
+//     console.log(a[index]);
+// }			
+
+config = {
+	inputSuffixs: ['Range', 'Input'],
+
+	set: function(field, value) {
+		var value = parseInt(value);
+		var i;
+		for (i = 0; i < this.inputSuffixs.length; ++i) {
+		    this.setElementValue(field+this.inputSuffixs[i], value);
+		}
+		forest[field] = value;
+		console.log(forest);
+	},
+
+	setElementValue: function(id, value) {
+		document.getElementById(id).value = value;
+	},
+}
+
+// 
+// function arrayHasOwnIndex(array, key) {
+//     return array.hasOwnProperty(key) && /^0$|^[1-9]\d*$/.test(key) && key <= 4294967294;
+// }
+// for (key in a) {
+//     if (arrayHasOwnIndex(a, key)) {
+//         console.log(a[key]);
+//     }
+// }
+// 
+
+
+
+
+forest = {
+	humidity: 50,
+	density: 60,
+	durationBurning: 8,
+	speedDrying: 10,
+	// firePoint: [2,2],
+
+	dots: {
+		size: 5,
+		qty: {
+			x: 50,
+			y: 40,
+		}
+	},
+
+	stats: {
+		cycles: 0,
+		total: 0,
+		unBurnings: 0,
+		burnings: 0,
+		burnts: 0,
+	},
+
+
+	trees: {
+		unBurnings: [],
+		burnings: [],
+		burnts: [],
+	},
+
+	//попутаемся установить начальную точку огня. Если пользователь кликнул по дереву, то точка установится, о чём будет сообщено путём возврата true. В других случаях возврат false.
+	setFire: function(x, y) {
+		if (1) {
+			this.trees.unBurnings--;
+
+			this.stats.unBurnings--;
+			this.stats.burnings++;
+
+			return true;
+		}
+		return false;
+	},
+
+	//сброс
+	reset: function() {
+		this.stats.cycles = 0;
+		this.stats.total = 0;
+		this.stats.unBurnings = 0;
+		this.stats.burnings = 0;
+		this.stats.burnts = 0;
+
+		this.trees.unBurnings = [];
+		this.trees.burnings = [];
+		this.trees.burnts = [];
+	},
+
+	isTree: function() {
+		return Math.floor(Math.random() * 2);
+	},
+
+	//генерация леса указанной плотности
+	generate: function() {
+		this.reset();
+
+		var xi, yi, dot;
+		for (yi = 0; yi < this.dots.qty.y; yi++) {
+			for (xi = 0; xi < this.dots.qty.x; xi++) {
+				//.push([xi, yi])
+				if (this.isTree()) {
+					// dot [xi]
+					this.trees.unBurnings[yi] = [this.humidity, this.durationBurning];
+					this.stats.total++;
+				}
+			}
+		}
+	},
+
+	simulation: function() {
+		//пока есть горящие деревья, симуляция будет работать.
+		while (this.stats.burnings) {
+			//поочереди возьмём каждое дерево и проверим есть ли негорящие соседи. Если есть, то если влажность соседа не больше 0, то сосед загорается.
+		}
+	},
+};
+
+forest.generate();
+console.log(forest.trees.unBurnings)
+
+// forest.setFire(2,2);
+
+/*id, nameA fire in the woods. The forest in the fire. A burning forest. The forest is burning.*/
+			/*
+влажность. плотность. длительность горения. скорость высыхания.
+humidity. density. the duration of burning. speed drying.
+
+деревьев. кол-во деревьев. всего деревьев. горящие. сгоревшие.
+trees. the number of trees. all of the trees. burning. burnt.
+
+горящих деревьев. сгоревших деревьев. нетронутых деревьев. живых деревьев.
+burning trees. burnt trees. intact trees. of living trees.
+			*/
+
+// function contains(arr, elem) {
+//    return arr.indexOf(elem) != -1;
+// }
+
+
+var example = document.getElementById("example"),
+    ctx     = example.getContext('2d');
+example.width = forest.dots.qty.x*forest.dots.size;
+example.height = forest.dots.qty.y*forest.dots.size;
+
+ctx.fillRect(0,0, 10, 10);
+
+		</script>
+</body>
+</html>
+
+<!-- 
+//Создаем наш объект
+var MyObject = new Object();
+//Переменные
+MyObject.id = 5; //Число
+console.log(MyObject);
+
+//id, name
+function MyObject(id, name)
+{
+
+}  -->
