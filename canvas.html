@@ -75,7 +75,9 @@ config = {
 // }
 // 
 
-
+function isKeyExists(array, key) {
+    return array.hasOwnProperty(key) && /^0$|^[1-9]\d*$/.test(key) && key <= 4294967294;
+}
 
 
 forest = {
@@ -158,9 +160,23 @@ forest = {
 	simulation: function() {
 		//пока есть горящие деревья, симуляция будет работать.
 		while (this.stats.burnings) {
+			var cur = {
+				burnings: this.stats.burnings,
+			};
+			//проверим не сгорели ли горящие деревья.
+			for (key in cur.burnings) {
+			    if (isKeyExists(cur.burnings, key)) {
+			    	
+			    }
+			}
+
 			//поочереди возьмём каждое дерево и проверим есть ли негорящие соседи. Если есть, то если влажность соседа не больше 0, то сосед загорается.
 		}
 	},
+
+	coordAdd: function(prop, x, y){
+
+	}
 };
 
 forest.generate();
