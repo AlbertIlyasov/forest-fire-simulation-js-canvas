@@ -76,7 +76,7 @@ config = {
 		    setElementValue(field+this.inputSuffixs[i], value);
 		}
 		forest[field] = value;
-		console.log(forest);
+		// console.log(forest);
 	},
 }
 
@@ -152,7 +152,7 @@ forest = {
 
 	//генерация леса указанной плотности
 	generate: function() {
-		console.log('generate');
+		// console.log('generate');
 		this.reset();
 
 		var x, y, dot;
@@ -354,8 +354,6 @@ forest = {
 };
 
 forest.initCanvas('example');
-forest.fillGrass();
-forest.displayStats();
 forest.generate();
 
 </script>
