@@ -30,8 +30,8 @@ canvas {
 		<div id="configPanel">
 			<fieldset>
 				<legend>Density, %</legend>
-				<input type="range" min="0" max="100" step="1" value="50" id="densityRange" onChange="config.set('density', this.value); forest.generate();">
-				<input type="number" min="0" max="100" step="1" value="50" id="densityInput" onChange="config.set('density', this.value); forest.generate();">
+				<input type="range" min="1" max="100" step="1" value="50" id="densityRange" onChange="config.set('density', this.value); forest.generate();">
+				<input type="number" min="1" max="100" step="1" value="50" id="densityInput" onChange="config.set('density', this.value); forest.generate();">
 			</fieldset>
 
 			<fieldset>
@@ -76,7 +76,6 @@ config = {
 		    setElementValue(field+this.inputSuffixs[i], value);
 		}
 		forest[field] = value;
-		// console.log(forest);
 	},
 }
 
@@ -91,10 +90,10 @@ forest = {
 	maxTacts: 1000000,
 
 	dots: {
-		size: 20,
+		size: 10,
 		qty: {
-			x: 10,
-			y: 12,
+			x: 50,
+			y: 50,
 		}
 	},
 
@@ -123,8 +122,6 @@ forest = {
 
 			this.treeMove('unBurnings', 'burnings', key);
 			this.fillDot(x, y, 'burning');
-
-			// console.log('fire ['+x+','+y+']');
 		}
 	},
 
@@ -154,7 +151,6 @@ forest = {
 
 	//генерация леса указанной плотности
 	generate: function() {
-		// console.log('generate');
 		this.reset();
 
 		var x, y, dot;
@@ -204,7 +200,6 @@ forest = {
 		if (t>this.maxTacts) {
 			break;
 		}
-		// console.log('t='+t);
 		
 		//для текущего такта сохраняем текущие горящие деревья.
 		currentBurnings = this.trees.burnings;
@@ -218,7 +213,6 @@ forest = {
 			keyParent = j;
 			tree = currentBurnings[keyParent];
 
-			// console.log('tree=',tree);
 			x = tree[0];
 			y = tree[1];
 
@@ -247,7 +241,6 @@ forest = {
 					if (neigKey !== false){
 						neigTree = this.trees.unBurnings[neigKey];
 
-						// console.log(neigTree);
 						//если сосед ещё не высох (индекс 2 - это влажность), станет суше.
 						if (neigTree[2]>0){
 							this.trees.unBurnings[neigKey][2] -= this.speedDrying;
@@ -255,8 +248,6 @@ forest = {
 						} else {
 							this.treeMove('unBurnings', 'burnings', neigKey);
 							this.fillDot(neig[0],neig[1], 'burning');
-							
-							// console.log('t='+t+' ['+neig[0]+','+neig[1]+'] burnings');
 						}
 						//запишем координаты проверенного дерева, чтобы в текущем такте не изменять его повторно.
 						usedTrees.pop([neig[0],neig[1]]);
@@ -271,8 +262,6 @@ forest = {
 			} else {
 				this.treeMove('burnings', 'burnts', keyParent);
 				this.fillDot(x, y, 'burnts');
-							
-				// console.log('t='+t+' ['+x+','+y+'] burnts');
 			}
 
 			// текущее горящее дерево запишем в использованные в текущем такте.
@@ -283,7 +272,6 @@ forest = {
 	},
 
 	treeMove: function(typeFrom, typeTo, key){
-		// console.log('treeMove: typeFrom='+typeFrom+' typeTo='+typeTo+' key='+key);
 		excluded = this.trees[typeFrom].splice(key, 1);
 		this.trees[typeTo].push(excluded[0]);
 	},
@@ -300,7 +288,6 @@ forest = {
 			if (arr[i][0] === x && arr[i][1] === y) {
 				return i;
 			}
-		    // console.log('i='+i);
 		}
 		return false;
 	},
@@ -325,9 +312,6 @@ forest = {
 			this.ctx.fillStyle = dots[i][1];
 			type = dots[i][0];
 
-
-
-			// console.log('fillTrees ', this.trees.unBurnings)
 			for (i=0; i<this.trees[type].length; i++){
 				x1 = this.trees[type][i][0]*this.dots.size;
 				y1 = this.trees[type][i][1]*this.dots.size;
@@ -358,8 +342,6 @@ forest = {
 		x2 = this.dots.size;
 		y2 = this.dots.size;
 		this.ctx.fillRect(x1,y1, x2,y2);
-
-		// console.log(x1,y1, x2,y2);
 	},
 };
 
