@@ -1,7 +1,6 @@
 <html>
 <style>
 canvas {
-	border1: 1px solid blue;
 	padding: none;
 	margin: none;
 }
@@ -23,7 +22,7 @@ canvas {
 	padding-bottom: 4px;
 }
 </style>
-<body onLoad="forest.generate()">
+<body>
 	<div id="wrapper">
 		<div id="canvasWrapper">
 			<canvas id="example">Обновите браузер</canvas>
@@ -60,14 +59,8 @@ canvas {
 			</fieldset>
 		</div>
 	</div>
-		<script>
-			
 
-// var a = ["a", "b", "c"];
-// var index;
-// for (index = 0; index < a.length; ++index) {
-//     console.log(a[index]);
-// }
+<script>
 
 function setElementValue(id, value) {
 	document.getElementById(id).value = value;
@@ -85,26 +78,8 @@ config = {
 		forest[field] = value;
 		console.log(forest);
 	},
-
-	// setElementValue: function(id, value) {
-	// 	document.getElementById(id).value = value;
-	// },
 }
 
-// 
-// function arrayHasOwnIndex(array, key) {
-//     return array.hasOwnProperty(key) && /^0$|^[1-9]\d*$/.test(key) && key <= 4294967294;
-// }
-// for (key in a) {
-//     if (arrayHasOwnIndex(a, key)) {
-//         console.log(a[key]);
-//     }
-// }
-// 
-
-function isKeyExists(array, key) {
-    return array.hasOwnProperty(key) && /^0$|^[1-9]\d*$/.test(key) && key <= 4294967294;
-}
 
 
 forest = {
@@ -112,7 +87,6 @@ forest = {
 	density: 50,
 	durationBurning: 8,
 	speedDrying: 10,
-	// firePoint: [2,2],
 
 	dots: {
 		size: 20,
@@ -122,48 +96,11 @@ forest = {
 		}
 	},
 
-	// stats: {
-	// 	cycles: 0,
-	// 	total: 0,
-	// 	unBurnings: 0,
-	// 	burnings: 0,
-	// 	burnts: 0,
-	// },
-
-	// statuses: {
-	// 	grass: 0,
-	// 	unburning: 1,
-	// 	burning: 2,
-	// 	burnt: 3,
-	// },
-
-
 	trees: {
 		total: 170,
-		unBurnings: [
-			//format: x, y, humidity, points
-			[0,0,50,10],
-			[0,1,50,10],
-			[0,2,50,10],
-			[0,3,50,10],
-			[0,4,50,10],
-			[1,1,50,10],
-			[2,2,50,10],
-			[3,3,50,10],
-			[4,4,50,10],
-			[5,5,50,10],
-			[6,6,50,10],
-			[7,7,50,10],
-			[8,8,50,10],
-			[9,9,50,10],
-			[9,10,50,10],
-			[9,11,50,10],
-			[9,12,50,10],
-		],
-		burnings: [
-			[0,5,50,10],
-			[0,6,50,10],
-		],
+		//format: [x, y, humidity, pointsOfLife=durationBurning]
+		unBurnings: [],
+		burnings: [],
 		burnts: [],
 	},
 
@@ -184,6 +121,8 @@ forest = {
 
 			this.treeMove('unBurnings', 'burnings', key);
 			this.fillDot(x, y, 'burning');
+
+			// console.log('fire ['+x+','+y+']');
 		}
 	},
 
@@ -197,12 +136,6 @@ forest = {
 
 	//сброс
 	reset: function() {
-		// this.stats.cycles = 0;
-		// this.stats.total = 0;
-		// this.stats.unBurnings = 0;
-		// this.stats.burnings = 0;
-		// this.stats.burnts = 0;
-
 		this.trees.total = 0;
 		this.trees.unBurnings = [];
 		this.trees.burnings = [];
@@ -227,8 +160,6 @@ forest = {
 		for (x = 0; x < this.dots.qty.x; x++) {
 			for (y = 0; y < this.dots.qty.y; y++) {
 				this.trees.unBurnings.push([x,y,this.humidity,this.durationBurning]);
-				// console.log(this.trees.unBurnings);
-				console.log(this.isTree());
 			}
 		}
 
@@ -260,16 +191,30 @@ forest = {
 			return;
 		}
 
-		var tmp, i, neig, neigs, key, keyParent;
+		var tmp, i, j, neig, neigs, key, keyParent, currentBurnings, usedTrees, tree, x, y, neigKey, neigTree, t;
 
+		var delay = 1;
+		t = 0;
+	//пока есть горящие деревья, симуляция будет работать.
+	while (this.trees.burnings.length){
+		t++;
+		//для текущего такта сохраняем текущие горящие деревья.
+		currentBurnings = this.trees.burnings;
+		// чтобы избежать двойного использования соседей, создадим массив использованных соседей и перед началом каждого такта будем занулять его.
+		usedTrees = [];
 
-		while (this.trees.burnings.length){
-		tmp = this.trees;
-		//пока есть горящие деревья, симуляция будет работать.
-		while (tree = tmp.burnings.pop()) {
-			console.log('tree=',tree);
+		//переберём текущие горящие деревья для того, чтобы: 
+		// 1) если они сгорели, перевести их в массив сгоревших.
+		// 2) подсушить соседей или воспламенить их.
+		for (j=0; j<currentBurnings.length; j++){
+			keyParent = j;
+			tree = currentBurnings[keyParent];
+
+			// console.log('tree=',tree);
 			x = tree[0];
 			y = tree[1];
+
+			// координаты соседей
 			neigs = [
 				// [x, y],
 				[x, y-1],
@@ -285,43 +230,50 @@ forest = {
 			//проверим 8 наших возможных соседей. Если есть сосед и он ещё не горит, то проверим его влажность. Если влажность <=0, сосед загорится. Иначе его влажность просто уменьшится. 
 			for (i=0; i<neigs.length; i++){
 				neig = neigs[i];
-				key = this.search(tmp.unBurnings, neig[0],neig[1]);
 
-				if (key !== false){
-					neigTree = tmp.unBurnings[key];
+				//если дерево в текущем такте ещё не использовано и при этом координаты дерева не вышли за пределы canvas.
+				if (neig[0] >=0 && neig[1] >=0 && this.search(usedTrees, neig[0],neig[1]) === false){
 
-					//если ещё не высохло, станет суше.
-					if (neigTree[2]>0){
-						this.trees.unBurnings[key][2] -= this.speedDrying;
-					//иначе загорается
-					} else {
-						this.treeMove('unBurnings', 'burnings', this.search(this.trees.unBurnings, neigTree[0],neigTree[1]));
+					//если есть негорящий сосед с текущими координатами (негорящие соседи находятся в массиве this.trees.unBurnings)
+					neigKey = this.search(this.trees.unBurnings, neig[0],neig[1]);
+					if (neigKey !== false){
+						neigTree = this.trees.unBurnings[neigKey];
+
+						//если сосед ещё не высох (индекс 2 - это влажность), станет суше.
+						if (neigTree[2]>0){
+							this.trees.unBurnings[neigKey][2] -= this.speedDrying;
+						//иначе загорается
+						} else {
+							this.treeMove('unBurnings', 'burnings', neigKey);
+							this.fillDot(neig[0],neig[1], 'burning');
+							
+							// console.log('t='+t+' ['+neig[0]+','+neig[1]+'] burnings');
+						}
+						//запишем координаты проверенного дерева, чтобы в текущем такте не изменять его повторно.
+						usedTrees.pop([neig[0],neig[1]]);
 					}
-					tmp.unBurnings = this.delete(tmp.unBurnings, key);
 				}
 			}
 
-			keyParent = this.search(this.trees.burnings, x,y);
-			//если дерево ещё не сгорело, уменьшим его жизнь.
+			//если дерево ещё не сгорело (индекс 3 - это кол-во очков жизни), уменьшим его жизнь.
 			if (tree[3]>0){
-				console.log(this.trees.burnings[keyParent]);
 				this.trees.burnings[keyParent][3]--;
 			//иначе дерево сгорело.
 			} else {
-				this.treeMove('burnings', 'burnts', key);
+				this.treeMove('burnings', 'burnts', keyParent);
+				this.fillDot(x, y, 'burnts');
+							
+				// console.log('t='+t+' ['+x+','+y+'] burnts');
 			}
-			
-			this.fillTrees();
-		}
-		}
-	},
 
-	coordAdd: function(prop, x, y){
-
+			// текущее горящее дерево запишем в использованные в текущем такте.
+			usedTrees.pop([x,y]);
+		}				
+	}					
 	},
 
 	treeMove: function(typeFrom, typeTo, key){
-		console.log('treeMove: typeFrom='+typeFrom+'typeTo='+typeTo+'key='+key);
+		// console.log('treeMove: typeFrom='+typeFrom+' typeTo='+typeTo+' key='+key);
 		excluded = this.trees[typeFrom].splice(key, 1);
 		this.trees[typeTo].push(excluded[0]);
 	},
@@ -387,19 +339,6 @@ forest = {
 		this.example.height = this.dots.qty.y*this.dots.size;
 	},
 
-	// dotBurning: function(x, y){
-	// 	this.ctx.fillStyle = this.colors.burning;
-	// 	var x1,y1,x2,y2;
-	// 	x1 = x*this.dots.size;
-	// 	y1 = y*this.dots.size;
-
-	// 	x2 = this.dots.size;
-	// 	y2 = this.dots.size;
-	// 	this.ctx.fillRect(x1,y1, x2,y2);
-
-	// 	console.log(x1,y1, x2,y2);
-	// },
-
 	fillDot: function(x, y, colorType){
 		this.ctx.fillStyle = this.colors[colorType];
 		var x1,y1,x2,y2;
@@ -410,22 +349,15 @@ forest = {
 		y2 = this.dots.size;
 		this.ctx.fillRect(x1,y1, x2,y2);
 
-		console.log(x1,y1, x2,y2);
+		// console.log(x1,y1, x2,y2);
 	},
 };
 
 forest.initCanvas('example');
 forest.fillGrass();
-
 forest.displayStats();
-console.log("setFire="+forest.setFire(9,9));
-
 forest.generate();
 
-
-
-
-
-		</script>
+</script>
 </body>
 </html>
