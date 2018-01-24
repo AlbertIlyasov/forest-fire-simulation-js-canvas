@@ -54,7 +54,7 @@ canvas {
 				<label><input type="text" readonly id="treesUnBurnings"> - UnBurnings</label>
 				<label><input type="text" readonly id="treesBurnings"> - Burnings</label>
 				<label><input type="text" readonly id="treesBurnts"> - Burnts</label>
-				
+
 				<input type="button" value="Simulation" onClick="forest.simulation()">
 			</fieldset>
 		</div>
@@ -87,6 +87,8 @@ forest = {
 	density: 50,
 	durationBurning: 8,
 	speedDrying: 10,
+
+	maxTacts: 1000000,
 
 	dots: {
 		size: 20,
@@ -198,6 +200,12 @@ forest = {
 	//пока есть горящие деревья, симуляция будет работать.
 	while (this.trees.burnings.length){
 		t++;
+		//защита от зависания из-за ошибки бесконечного цикла.
+		if (t>this.maxTacts) {
+			break;
+		}
+		// console.log('t='+t);
+		
 		//для текущего такта сохраняем текущие горящие деревья.
 		currentBurnings = this.trees.burnings;
 		// чтобы избежать двойного использования соседей, создадим массив использованных соседей и перед началом каждого такта будем занулять его.
@@ -239,6 +247,7 @@ forest = {
 					if (neigKey !== false){
 						neigTree = this.trees.unBurnings[neigKey];
 
+						// console.log(neigTree);
 						//если сосед ещё не высох (индекс 2 - это влажность), станет суше.
 						if (neigTree[2]>0){
 							this.trees.unBurnings[neigKey][2] -= this.speedDrying;
@@ -268,7 +277,8 @@ forest = {
 
 			// текущее горящее дерево запишем в использованные в текущем такте.
 			usedTrees.pop([x,y]);
-		}				
+		}		
+	this.displayStats();		
 	}					
 	},
 
