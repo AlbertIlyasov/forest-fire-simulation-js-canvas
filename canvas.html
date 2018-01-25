@@ -87,13 +87,13 @@ forest = {
 	durationBurning: 8,
 	speedDrying: 10,
 
-	maxTacts: 1000000,
+	maxTacts: 1,
 
 	dots: {
-		size: 10,
+		size: 20,//10
 		qty: {
-			x: 50,
-			y: 50,
+			x: 10,//50
+			y: 10,//50
 		}
 	},
 
@@ -216,6 +216,11 @@ forest = {
 			x = tree[0];
 			y = tree[1];
 
+			//если дерево уже использовано, пропустим его
+			if (this.search(usedTrees, x,y) !== false) {
+				continue;
+			}
+
 			// координаты соседей
 			neigs = [
 				// [x, y],
@@ -234,6 +239,7 @@ forest = {
 				neig = neigs[i];
 
 				//если дерево в текущем такте ещё не использовано и при этом координаты дерева не вышли за пределы canvas.
+				// if (neig[0] >=0 && neig[1] >=0){
 				if (neig[0] >=0 && neig[1] >=0 && this.search(usedTrees, neig[0],neig[1]) === false){
 
 					//если есть негорящий сосед с текущими координатами (негорящие соседи находятся в массиве this.trees.unBurnings)
@@ -250,7 +256,7 @@ forest = {
 							this.fillDot(neig[0],neig[1], 'burning');
 						}
 						//запишем координаты проверенного дерева, чтобы в текущем такте не изменять его повторно.
-						usedTrees.pop([neig[0],neig[1]]);
+						usedTrees.push([neig[0],neig[1]]);
 					}
 				}
 			}
@@ -265,7 +271,7 @@ forest = {
 			}
 
 			// текущее горящее дерево запишем в использованные в текущем такте.
-			usedTrees.pop([x,y]);
+			usedTrees.push([x,y]);
 		}		
 	this.displayStats();		
 	}					
